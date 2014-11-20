@@ -1,0 +1,4 @@
+try:
+	lolo = []]
+except:
+	raise

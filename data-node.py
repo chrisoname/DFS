@@ -76,7 +76,7 @@ class DataNodeTCPHandler(SocketServer.BaseRequestHandler):
 		
 		# Get the block id from the packet
 		blockid = p.getBlockID()
-
+		
 
 		# Read the file with the block id data
 		# Send it back to the copy client.

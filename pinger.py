@@ -139,6 +139,10 @@ def ping(host, timeout=1):
   
  return delay
 
+
+print "PINGING localhost"
+ping('localhost')
+
 print "" 
 print "www.yahoo.co.in for ASIA"
 ping("www.yahoo.co.in")
@@ -151,3 +155,7 @@ ping("www.duke.edu")
 print ""
 print "www.ru.ac.za for AFRICA" 
 ping("www.ru.ac.za")
+
+
+print "PINGING localhost"
+ping('localhost')

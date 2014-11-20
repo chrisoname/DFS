@@ -22,11 +22,12 @@ def usage():
 class MetadataTCPHandler(SocketServer.BaseRequestHandler):
 
 	def handle_reg(self, db, p):
-		"""Register a new client to the DFS  ACK if successfully REGISTERED
+		"""Register a new client to the DFS ACK if successfully REGISTERED
 			NAK if problem, DUP if the IP and port already registered
 		"""
+
 		try:
-			if # Fill condition:
+			if db.AddDataNode(p.getAddr(), p.getPort()) != 0:     # Fill condition:
 				self.request.sendall("ACK") 
 			else:
 				self.request.sendall("DUP")
@@ -37,6 +38,7 @@ class MetadataTCPHandler(SocketServer.BaseRequestHandler):
 		"""Get the file list from the database and send list to client"""
 		try:
 			# Fill code here
+			
 		except:
 			self.request.sendall("NAK")	
 
@@ -87,6 +89,7 @@ class MetadataTCPHandler(SocketServer.BaseRequestHandler):
 		p = Packet()
 
 		# Receive a msg from the list, data-node, or copy clients
+		#self.request es el socket
 		msg = self.request.recv(1024)
 		print msg, type(msg)
 		
@@ -105,19 +108,19 @@ class MetadataTCPHandler(SocketServer.BaseRequestHandler):
 		elif cmd == "list":
 			# Client asking for a list of files
 			# Fill code
-		
+			self.handle_list(db, p)
 		elif cmd == "put":
 			# Client asking for servers to put data
 			# Fill code
-		
+			self.handle_put(db, p)
 		elif cmd == "get":
 			# Client asking for servers to get data
 			# Fill code
-
+			self.handle_get(db, p)
 		elif cmd == "dblks":
 			# Client sending data blocks for file
-			 # Fill code
-
+			# Fill code
+			self.handle_blocks(db, p)
 
 		db.Close()
 
@@ -132,6 +135,7 @@ if __name__ == "__main__":
 
     server = SocketServer.TCPServer((HOST, PORT), MetadataTCPHandler)
 
+    
     # Activate the server; this will keep running until you
     # interrupt the program with Ctrl-C
     server.serve_forever()
