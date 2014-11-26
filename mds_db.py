@@ -65,7 +65,7 @@ class mds_db:
 		return self.c.fetchone()[0]
 
 	def GetDataNodes(self):
-		"""Returns a list of data node tuples (address, port).  Usefull to know to which 
+		"""Returns a list of data node tuples (IPaddress, port).  Useful to know to which 
 		   datanodes chunks can be send.
 		"""
 
@@ -107,7 +107,7 @@ class mds_db:
 
 	def AddBlockToInode(self, fname, blocks):
 		"""Once the Inode was created with the file's attribute
-  	           and the data copied to the data nodes.  The inode is 
+  	           and the data copied to the data nodes, the inode is 
 		   updated to point to the data blocks. So this function receives
                    the filename and a list of tuples with (node id, chunk id)
 		"""

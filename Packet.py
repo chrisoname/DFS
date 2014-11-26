@@ -61,7 +61,7 @@ class Packet:
 		self.packet = {"files": lfiles}	
 
 	def getFileArray(self):
-		"""Builds a list response packet"""
+		"""Builds a list response packet       ESTO ES UNA MENTIRA"""
 
 		if self.packet.has_key("files"):
 			return self.packet["files"]
@@ -73,7 +73,7 @@ class Packet:
 		self.packet["fname"] = fname
 
 	def BuildPutPacket(self, fname, fsize):
-		"""Builds a put packet to put fname and file size."""
+		"""Builds a put packet to put serverpath and file size."""
 		self.BuildCommand("put")
 		self.packet["fname"] = fname
 		self.packet["fsize"] = fsize
@@ -92,10 +92,10 @@ class Packet:
 
 	def getBlockID(self):
 		"""Returns a the block_id from a packet."""
-			return self.packet["blockid"]
+		return self.packet["blockid"]
 
 	def getFileInfo(self):
-		"""Returns the file info in a packet."""
+		"""Returns file info from packet."""
 		if self.packet.has_key("fname") and self.packet.has_key("fsize"):
 			return self.packet["fname"], self.packet["fsize"] 
 

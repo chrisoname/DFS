@@ -34,10 +34,15 @@ class MetadataTCPHandler(SocketServer.BaseRequestHandler):
 		except:
 			self.request.sendall("NAK")
 
-	def handle_list(self, db):
+	def handle_list(self, db, p):
 		"""Get the file list from the database and send list to client"""
 		try:
 			# Fill code here
+			files = db.GetFiles()
+			
+			p.BuildListResponse(files)
+			response = p.getEncodedPacket()
+			self.request.sendall(response)
 			
 		except:
 			self.request.sendall("NAK")	
@@ -46,12 +51,15 @@ class MetadataTCPHandler(SocketServer.BaseRequestHandler):
 		"""Insert new file into the database and send data nodes to save
 		   the file.
 		"""
-	       
 		# Fill code 
-	
+		p.DecodePacket()
+		info = p.getFileInfo()
 		if db.InsertFile(info[0], info[1]):
 			# Fill code
-			
+			nodes = db.GetDataNodes()
+			p.BuildPutResponse(nodes)
+			response = p.getEncodedPacket()
+			self.request.sendall(response)	
 		else:
 			self.request.sendall("DUP")
 	
@@ -109,14 +117,17 @@ class MetadataTCPHandler(SocketServer.BaseRequestHandler):
 			# Client asking for a list of files
 			# Fill code
 			self.handle_list(db, p)
+
 		elif cmd == "put":
 			# Client asking for servers to put data
 			# Fill code
 			self.handle_put(db, p)
+
 		elif cmd == "get":
 			# Client asking for servers to get data
 			# Fill code
 			self.handle_get(db, p)
+
 		elif cmd == "dblks":
 			# Client sending data blocks for file
 			# Fill code

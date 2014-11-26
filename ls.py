@@ -18,9 +18,29 @@ def usage():
 	sys.exit(0)
 
 def client(ip, port):
+	p = Packet()
+	try:
+		media = socket.socket(AF_INET, SOCK_STREAM) #abre el socket
+		media.connect(ip, port) # se conecta al metadata server
+		p.buildListPacket() #  esto lo que construye es un Packet que tenga el string "LIST"
+		
+		request = p.getEncodedPacket() # declara a request como los paquetes
+		media.sendall(request) #manda todos los paquetes hasta que este vacio
+		response = media.recv(1024) #recibe una respuesta del metadata server
+		
+		if response == "NAK":
+			raise "Problem in metadata server, can't complete operation"
+			return
+		
+		p.DecodePacket(response) # 
+		
+		ls = p.getFileArray()
+		print ls
+
+	except:
+		raise 
 
 	# Contacts the metadata server and ask for list of files.
-
 if __name__ == "__main__":
 
 	if len(sys.argv) < 2:

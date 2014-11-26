@@ -28,7 +28,7 @@ def register(meta_ip, meta_port, data_ip, data_port):
 	# Establish connection
 	
 	# Fill code	
-	sock = Socket.socket(AF_INET, SOCK_STREAM)	
+	sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)	
 	sock.connect((meta_ip, meta_port))
 
 	try:
@@ -40,10 +40,10 @@ def register(meta_ip, meta_port, data_ip, data_port):
 			response = sock.recv(1024)
 
 			if response == "DUP":
-				print "Duplicate Registration"
+				raise "Duplicate Registration"
 
 		 	if response == "NAK":
-				print "Registratation ERROR"
+				raise "Registratation ERROR"
 
 	finally:
 		sock.close()
@@ -65,9 +65,21 @@ class DataNodeTCPHandler(SocketServer.BaseRequestHandler):
 		# Generates an unique block id.
 		blockid = str(uuid.uuid1())
 
+		try:
+			newFile = open('w', fname)
+		
+		# Open the file for the new data block.
+			chunk = self.request.recv(fsize)  
+			newFile.write(chunk)
+			self.request.sendall(blockid)
 
-		# Open the file for the new data block.  
+		except Exception e:
+			raise e
 		# Receive the data block.
+		finally:
+			newFile.close()
+
+	
 		# Send the block id back
 
 		# Fill code
