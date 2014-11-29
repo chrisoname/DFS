@@ -66,18 +66,23 @@ class DataNodeTCPHandler(SocketServer.BaseRequestHandler):
 		blockid = str(uuid.uuid1())
 
 		try:
-			newFile = open('w', fname)
-		
+			print "datanode 69, filename: ", fname
+			newFile = open(DATA_PATH + fname, 'w')
+			print "datanode71"
 		# Open the file for the new data block.
-			chunk = self.request.recv(fsize)  
+			print "waiting for chunk"
+			chunk = self.request.recv(1024)
+			print "got chunk"  
 			newFile.write(chunk)
+			newFile.close()
 			self.request.sendall(blockid)
 
-		except Exception e:
-			raise e
+		except Exception as e:
+			print "Error datanode 77"
+		#	print "I/O error({0}): {1}".format(e.errno, e.strerror)
 		# Receive the data block.
-		finally:
-			newFile.close()
+	#	finally:
+	#		newFile.close()
 
 	
 		# Send the block id back
@@ -117,21 +122,27 @@ if __name__ == "__main__":
 		usage()
 
 	try:
+
 		HOST = sys.argv[1]
+		print "host done"
 		PORT = int(sys.argv[2])
+		print "port done"
 		DATA_PATH = sys.argv[3]
-
-		if len(sys.argv > 4):
+		print "path done, ", DATA_PATH
+		if len(sys.argv) > 4:
 			META_PORT = int(sys.argv[4])
-
+		print "first if done"
 		if not os.path.isdir(DATA_PATH):
 			print "Error: Data path %s is not a directory." % DATA_PATH
 			usage()
+		print "second if done"
 	except:
+		print "except"
 		usage()
 
 
 	register("localhost", META_PORT, HOST, PORT)
+	print "registered node"
 	server = SocketServer.TCPServer((HOST, PORT), DataNodeTCPHandler)
 
     # Activate the server; this will keep running until you

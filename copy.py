@@ -36,54 +36,82 @@ def copyToDFS(address, serverPath, localPath):
 
 	p = Packet()
 	try:
-		ifile = open(localPath, 'r')
+		ofile = open(localPath, 'r')
 	except:
 		raise "FILE DOES NOT EXIST"
 	# Read (open) file
-	ifile = ifile.read()
+	ifile = ofile.read()
 	# Fill code
 	fsize = len(ifile)
 	# Create a Put packet with the fname and the length of the data,
 	# and sends it to the metadata server 
 	p.BuildPutPacket(serverPath, fsize)
 	request = p.getEncodedPacket()
-	# Fill code
 	media.sendall(request)
-	response = media.recv(1024)
 
-	if response == "DUP":
-		raise "manejar esto bien es opcional"
+
+	modifier = 0
+	response = media.recv(1024)
+	print "\n response:", response, "\n"
+
+	while(response == "DUP"):
+		modifier += 1
+		serverPath = serverPath + "(" + str(modifier) + ")"
+		p.BuildPutPacket(serverPath, fsize)
+		request = p.getEncodedPacket()
+		media.sendall(request)
+		response = media.recv(1024)
+		#raise "manejar esto bien es opcional"
 		#return
 
-	else:
-		p.DecodePacket(response)
-		nodes = p.getDataNodes()
-		divsize = int(fsize / len(nodes))
-		start = 0
-		#IDs format: [(<nodeID>, <chunkID>)]
-		IDs = []
-		for i in range(nodes):
-			block = ifile[start:i*divsize]
-			start = i*divsize
-			p.BuildPutPacket(serverPath, divsize)
-			nodeRequest = p.getEncodedPacket()
-			try:
-				nodeSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-				nodeSocket.connect((nodes[0], nodes[1]))
-				nodeSocket.sendall(nodeRequest)
-				chunkID = nodeSocket.recv(1024)
-				IDs[i] = (i, chunkID)
-			except Exception, e:
-				raise e
-			finally:
-				nodeSocket.close()
-		p.BuildDataBlockPacket(serverPath, IDs)
-		dblksCommand = p.getEncodedPacket()
-		media.sendall(dblksCommand)
 
-	finally:
-		ifile.close()
-		media.close()
+	
+	#	print "\n", response, "\n"
+	p.DecodePacket(response)
+	nodes = p.getDataNodes()
+	divsize = int(fsize / len(nodes))
+	start = 0
+	#IDs format: [(<nodeID>, <chunkID>)]
+	IDs = []
+	for i in range(len(nodes)):
+		chunk = ifile[start:(i+1)*divsize]
+		print "CHUNK CHUNK CHUNK: \n\n\n", chunk, "\n\n\n\n"
+		start = i*divsize
+		p.BuildPutPacket(serverPath, divsize)
+		nodePutRequest = p.getEncodedPacket()
+		print "Node request: ", nodePutRequest
+		try:
+			#print "nodes = ", nodes, "\n\n"
+			nodeSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+			nodeSocket.connect((nodes[i][0], nodes[i][1]))
+			#print "connected"
+			nodeSocket.sendall(nodePutRequest)
+			response = nodeSocket.recv(1024)
+			if response == "OK":
+				print "received OK"
+				test = open("chunk.txt", 'w')
+				test.write(chunk)
+				nodeSocket.sendall(chunk)
+				print "Sent chunk"
+				chunkID = nodeSocket.recv(1024)
+				print "ID received: ", chunkID
+				IDs.append((i, chunkID))
+				print "done"
+			else:
+				i += -1
+
+		except Exception, e:
+			print "error copy.py 79", "\tIteration ", i
+		finally:
+			nodeSocket.close()
+
+	p.BuildDataBlockPacket(serverPath, IDs)
+	dblksCommand = p.getEncodedPacket()
+	media.sendall(dblksCommand)
+
+	
+	ofile.close()
+	media.close()
 #		p.BuildDataBlockPacket(serverPath, blockList)
 #		request = p.getEncodedPacket()
 	#	media.sendall(request)

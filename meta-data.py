@@ -29,6 +29,7 @@ class MetadataTCPHandler(SocketServer.BaseRequestHandler):
 		try:
 			if db.AddDataNode(p.getAddr(), p.getPort()) != 0:     # Fill condition:
 				self.request.sendall("ACK") 
+				print "registered"
 			else:
 				self.request.sendall("DUP")
 		except:
@@ -52,17 +53,22 @@ class MetadataTCPHandler(SocketServer.BaseRequestHandler):
 		   the file.
 		"""
 		# Fill code 
-		p.DecodePacket()
-		info = p.getFileInfo()
-		if db.InsertFile(info[0], info[1]):
-			# Fill code
-			nodes = db.GetDataNodes()
-			p.BuildPutResponse(nodes)
-			response = p.getEncodedPacket()
-			self.request.sendall(response)	
-		else:
-			self.request.sendall("DUP")
-	
+		while 1:
+			
+			info = p.getFileInfo()
+			if db.InsertFile(info[0], info[1]):
+				# Fill code
+				nodes = db.GetDataNodes()
+				print "\nNODES:", nodes, "\n"
+				p.BuildPutResponse(nodes)
+				response = p.getEncodedPacket()
+				self.request.sendall(response)	
+				break
+			else:
+				self.request.sendall("DUP")
+				o = self.request.recv(1024)
+				p.DecodePacket(o)
+				
 	def handle_get(self, db, p):
 		"""Check if file is in database and return list of
 			server nodes that contain the file.
@@ -73,6 +79,7 @@ class MetadataTCPHandler(SocketServer.BaseRequestHandler):
 
 		if fsize:
 			# Fill code
+			pass
 
 			self.request.sendall(p.getEncodedPacket())
 		else:
@@ -83,7 +90,8 @@ class MetadataTCPHandler(SocketServer.BaseRequestHandler):
 
 		# Fill code to get file name and blocks from
 		# packet
-	
+		p.DecodePacket()
+		db.AddBlockToInode(p.getFileName(), p.getDataBlocks())
 		# Fill code to add blocks to file inode
 
 		

@@ -8,7 +8,7 @@
 #
 
 
-
+import sys
 import socket
 
 from Packet import *
@@ -20,9 +20,9 @@ def usage():
 def client(ip, port):
 	p = Packet()
 	try:
-		media = socket.socket(AF_INET, SOCK_STREAM) #abre el socket
-		media.connect(ip, port) # se conecta al metadata server
-		p.buildListPacket() #  esto lo que construye es un Packet que tenga el string "LIST"
+		media = socket.socket(socket.AF_INET, socket.SOCK_STREAM) #abre el socket
+		media.connect((ip, port)) # se conecta al metadata server
+		p.BuildListPacket() #  esto lo que construye es un Packet que tenga el string "LIST"
 		
 		request = p.getEncodedPacket() # declara a request como los paquetes
 		media.sendall(request) #manda todos los paquetes hasta que este vacio
@@ -49,12 +49,12 @@ if __name__ == "__main__":
 	ip = None
 	port = None 
 	server = sys.argv[1].split(":")
-	if len(server == 1):
+	if len(server) == 1:
 		ip = server[0]
 		port = 8000
 	elif len(server == 2):
 		ip = server[0]
-		port = int server[1]
+		port = int(server[1])
 
 	if not ip:
 		usage()
