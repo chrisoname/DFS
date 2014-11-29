@@ -136,6 +136,8 @@ if __name__ == "__main__":
 			print "Error: Data path %s is not a directory." % DATA_PATH
 			usage()
 		print "second if done"
+		if DATA_PATH[len(DATA_PATH) - 1] != '/':
+			DATA_PATH += '/'
 	except:
 		print "except"
 		usage()
