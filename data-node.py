@@ -40,11 +40,11 @@ def register(meta_ip, meta_port, data_ip, data_port):
 			response = sock.recv(1024)
 
 			if response == "DUP":
-				raise "Duplicate Registration"
+				print "duplicate registration, already in database :)"
 
 		 	if response == "NAK":
-				raise "Registratation ERROR"
-
+				print "Registratation ERROR"
+				sys.exit(0)
 	finally:
 		sock.close()
 	
@@ -66,14 +66,15 @@ class DataNodeTCPHandler(SocketServer.BaseRequestHandler):
 		blockid = str(uuid.uuid1())
 
 		try:
-			print "datanode 69, filename: ", fname
+	#		print "datanode 69, filename: ", fname
 			newFile = open(DATA_PATH + blockid, 'w')
-			print "datanode71"
+	#		print "datanode71"
 		# Open the file for the new data block.
-			print "waiting for chunk"
+	#		print "waiting for chunk"
 			chunk = self.request.recv(1024)
-			print "got chunk"  
+	#		print "got chunk"  
 			newFile.write(chunk)
+			
 			newFile.close()
 			self.request.sendall(blockid)
 
@@ -90,15 +91,17 @@ class DataNodeTCPHandler(SocketServer.BaseRequestHandler):
 		# Fill code
 
 	def handle_get(self, p):
-		
+		print "INSIDE HANDLE GET"
 		# Get the block id from the packet
 		blockid = p.getBlockID()
 		rfile = open(DATA_PATH + blockid, 'r')
-		self.request.sendall(rfile.read())
-
+		l = rfile.read()
+		print "Sending get response"
+		self.request.sendall(l)
+		print "sent"
 		# Read the file with the block id data
 		# Send it back to the copy client.
-		
+		rfile.close()
 		# Fill code
 
 	def handle(self):
@@ -125,27 +128,27 @@ if __name__ == "__main__":
 	try:
 
 		HOST = sys.argv[1]
-		print "host done"
+	#	print "host done"
 		PORT = int(sys.argv[2])
-		print "port done"
+	#	print "port done"
 		DATA_PATH = sys.argv[3]
-		print "path done, ", DATA_PATH
+	#	print "path done, ", DATA_PATH
 		if len(sys.argv) > 4:
 			META_PORT = int(sys.argv[4])
-		print "first if done"
+	#	print "first if done"
 		if not os.path.isdir(DATA_PATH):
-			print "Error: Data path %s is not a directory." % DATA_PATH
+	#		print "Error: Data path %s is not a directory." % DATA_PATH
 			usage()
-		print "second if done"
+	#	print "second if done"
 		if DATA_PATH[len(DATA_PATH) - 1] != '/':
 			DATA_PATH += '/'
 	except:
-		print "except"
+	#	print "except"
 		usage()
 
 
 	register("localhost", META_PORT, HOST, PORT)
-	print "registered node"
+	#print "registered node"
 	server = SocketServer.TCPServer((HOST, PORT), DataNodeTCPHandler)
 
     # Activate the server; this will keep running until you

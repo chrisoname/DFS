@@ -90,7 +90,8 @@ class MetadataTCPHandler(SocketServer.BaseRequestHandler):
 
 		# Fill code to get file name and blocks from
 		# packet
-		p.DecodePacket()
+		#p.DecodePacket()
+		print "\n\nFILENAME:",p.getFileName(), "\n\nDATA BLOCKS:", p.getDataBlocks(), "\n\n"
 		db.AddBlockToInode(p.getFileName(), p.getDataBlocks())
 		# Fill code to add blocks to file inode
 
@@ -139,6 +140,7 @@ class MetadataTCPHandler(SocketServer.BaseRequestHandler):
 		elif cmd == "dblks":
 			# Client sending data blocks for file
 			# Fill code
+			print "Doing dblks"
 			self.handle_blocks(db, p)
 
 		db.Close()

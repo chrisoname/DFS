@@ -132,8 +132,8 @@ class mds_db:
 		fid, fsize = self.GetFileInfo(fname)
 		if not fid:
 			return None, None
-		#query = """select address, port, cid from dnode, block where dnode.nid = block.nid and block.fid=%s""" % fid
-		query  = """select address, port from dnode where 1"""
+		query = """select address, port, cid from dnode, block where dnode.nid = block.nid and block.fid=%s""" % fid
+		#query  = """select address, port from dnode where 1"""
 		self.c.execute(query)
 		return fsize, self.c.fetchall() 
 		

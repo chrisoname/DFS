@@ -77,8 +77,8 @@ def copyToDFS(address, serverPath, localPath):
 		#chunk = ifile[start:(i+1)*divsize]
 	#	print "CHUNK CHUNK CHUNK: \n\n\n", chunk, "\n\n\n\n"
 		chunk = ifile[start:end]
-		start = i*divsize
-		end   = (i+1)*divsize
+		start = float(i/divsize) % 1
+		end   = float((i+1)/divsize) % 1
 		print "\n\nstart:end", start,':', end, "\n", chunk, "\n\n\n"
 		p.BuildPutPacket(serverPath, divsize)
 		nodePutRequest = p.getEncodedPacket()
