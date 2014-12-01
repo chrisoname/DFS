@@ -74,7 +74,7 @@ class DataNodeTCPHandler(SocketServer.BaseRequestHandler):
 			chunk = self.request.recv(1024)
 	#		print "got chunk"  
 			newFile.write(chunk)
-			
+			print "\n\nLEEEEEEEENGTH: ", len(chunk), "\n\n\n\n"
 			newFile.close()
 			self.request.sendall(blockid)
 			print "\nSENT BLOCKID\n"

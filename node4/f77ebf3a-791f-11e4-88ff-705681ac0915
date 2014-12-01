@@ -1,0 +1,38 @@
+
+		"""Returns the file name in a packet."""
+		if self.packet.has_key("fname"):
+			return self.packet["fname"] 
+
+	def BuildGetResponse(self, metalist, fsize):
+		"""Builds a list of data node servers with the blocks of a file, and file size."""
+		self.packet["servers"] = metalist
+		self.packet["fsize"] = fsize
+
+	def BuildPutResponse(self, metalist):
+		"""Builds a list of data node servers where a file data blocks can be stored.
+		I.E. a list of available data servers."""
+		self.packet["servers"] = metalist
+
+	def getDataNodes(self):
+		"""Returns a list of data servers"""
+		if self.packet.has_key("servers"):
+			return self.packet["servers"]
+		return None
+
+	def getDataBlocks(self):
+		"""Returns a list of data blocks""" 
+		if self.packet.has_key("blocks"):
+			return self.packet["blocks"]
+		return None
+
+	def BuildCommand(self, cmd):
+		"""Builds a packet type"""
+		if cmd in self.commands:
+			self.packet = {"command": cmd}
+
+
+
+		
+	
+		
+		

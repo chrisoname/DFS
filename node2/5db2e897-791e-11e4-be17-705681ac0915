@@ -1,0 +1,39 @@
+ne
+	def getPort(self):
+		"""Returns the port number of a server"""
+		if self.packet.has_key("port"):
+			return self.packet["port"]
+		return None
+
+	def DecodePacket(self, packet):
+		"""Receives a serialized message and turns it into a packet object."""
+		self.packet = json.loads(packet)	
+
+	def BuildRegPacket(self, addr, port):
+		"""Builds a registration packet"""
+		self.packet = {"command": "reg", "addr": addr, "port": port}
+		
+
+	def BuildListPacket(self):
+		"""Builds a list packet for file listing"""
+
+		self.BuildCommand("list")
+
+	def BuildListResponse(self, lfiles):
+		"""Builds a list response packet"""
+
+		self.packet = {"files": lfiles}	
+
+	def getFileArray(self):
+		"""Builds a list response packet       ESTO ES UNA MENTIRA"""
+
+		if self.packet.has_key("files"):
+			return self.packet["files"]
+
+
+	def BuildGetPacket(self, fname):
+		"""Build a get packet to get fname."""
+		self.BuildCommand("get")
+		self.packet["fname"] = fname
+
+	de

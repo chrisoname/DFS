@@ -1,0 +1,39 @@
+###############################################################################
+#
+# Filename: meta-data.py
+# Author: Jose R. Ortiz and ... (hopefully some students contribution)
+#
+# Description:
+# 	MySQL support library for the DFS project. Database info for the 
+#       metadata server.
+#
+# Please modify globals with appropiate info.
+
+from mds_db import *
+from Packet import *
+import sys
+import SocketServer
+
+def usage():
+	print """Usage: python %s <port, default=8000>""" % sys.argv[0] 
+	sys.exit(0)
+
+
+class MetadataTCPHandler(SocketServer.BaseRequestHandler):
+
+	def handle_reg(self, db, p):
+		"""Register a new client to the DFS ACK if successfully REGISTERED
+			NAK if problem, DUP if the IP and port already registered
+		"""
+
+		try:
+			if db.AddDataNode(p.getAddr(), p.getPort()) != 0:     # Fill condition:
+				self.request.sendall("ACK") 
+				print "registered"
+			else:
+				self.request.sendall("DUP")
+		except:
+			self.request.sendall("NAK")
+
+	def handle_list(self, db, p):
+		"""Get the file

@@ -11,6 +11,7 @@
 import socket
 import sys
 import os.path
+from math import ceil
 
 from Packet import *
 
@@ -68,38 +69,33 @@ def copyToDFS(address, serverPath, localPath):
 	#	print "\n", response, "\n"
 	p.DecodePacket(response)
 	nodes = p.getDataNodes()
-	divsize = int(fsize / len(nodes))
+	#divsize = int(ceil(fsize / float(len(nodes))))
+	divsize = int(ceil(float(fsize) / len(nodes)))
+	#divsize = ceil(divsize)
+	print "\n\n DIVSIZE ", divsize, "\n\n"
 	start = 0
 	end = divsize
 	#IDs format: [(<nodeID>, <chunkID>)]
 	IDs = []
 	for i in range(len(nodes)):
-		#chunk = ifile[start:(i+1)*divsize]
-	#	print "CHUNK CHUNK CHUNK: \n\n\n", chunk, "\n\n\n\n"
-		
+
 		chunk = ifile[start:end]
-		print "\n\nstart:end", start,':', end, "\n", chunk, "\n\n\n"
+	#	print "\n\nstart:end", start,':', end#, "\n", chunk, "\n\n\n"
 		start = end
-		end   = end*(i+1)
-	#	print "\n\nstart:end", start,':', end, "\n", chunk, "\n\n\n"
+		end   = (i+2) * divsize
 		p.BuildPutPacket(serverPath, divsize)
 		nodePutRequest = p.getEncodedPacket()
-	#	print "Node request: ", nodePutRequest
+	
 		try:
-			#print "nodes = ", nodes, "\n\n"
+			
 			nodeSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 			nodeSocket.connect((nodes[i][0], nodes[i][1]))
-			#print "connected"
 			nodeSocket.sendall(nodePutRequest)
 			response = nodeSocket.recv(1024)
 			if response == "OK":
-		#		print "received OK"
-			#	test = open("chunk.txt", 'w')
-			#	test.write(chunk)
 				nodeSocket.sendall(chunk)
-		#		print "Sent chunk"
 				chunkID = nodeSocket.recv(1024)
-		#		print "ID received: ", chunkID
+
 				IDs.append([nodes[i][0], nodes[i][1], chunkID])
 				print "done"
 			else:

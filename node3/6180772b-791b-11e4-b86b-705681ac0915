@@ -1,0 +1,49 @@
+onnection with the local database
+		db = mds_db("dfs.db")
+		db.Connect()
+
+		# Define a packet object to decode packet messages
+		p = Packet()
+
+		# Receive a msg from the list, data-node, or copy clients
+		#self.request es el socket
+		msg = self.request.recv(1024)
+		print msg, type(msg)
+		
+		# Decode the packet received
+		p.DecodePacket(msg)
+	
+
+		# Extract the command part of the received packet
+		cmd = p.getCommand()
+
+		# Invoke the proper action 
+		if   cmd == "reg":
+			# Registration client
+			self.handle_reg(db, p)
+
+		elif cmd == "list":
+			# Client asking for a list of files
+			# Fill code
+			self.handle_list(db, p)
+
+		elif cmd == "put":
+			# Client asking for servers to put data
+			# Fill code
+			self.handle_put(db, p)
+
+		elif cmd == "get":
+			# Client asking for servers to get data
+			# Fill code
+			self.handle_get(db, p)
+
+		elif cmd == "dblks":
+			# Client sending data blocks for file
+			# Fill code
+			print "Doing dblks"
+			self.handle_blocks(db, p)
+
+		db.Close()
+
+if __name__ == "__main__":
+    HOST, 

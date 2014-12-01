@@ -1,0 +1,38 @@
+a nodes to save
+		   the file.
+		"""
+		# Fill code 
+		while 1:
+			
+			info = p.getFileInfo()
+			if db.InsertFile(info[0], info[1]):
+				# Fill code
+				nodes = db.GetDataNodes()
+				print "\nNODES:", nodes, "\n"
+				p.BuildPutResponse(nodes)
+				response = p.getEncodedPacket()
+				self.request.sendall(response)	
+				break
+			else:
+				self.request.sendall("DUP")
+				o = self.request.recv(1024)
+				p.DecodePacket(o)
+				
+	def handle_get(self, db, p):
+		"""Check if file is in database and return list of
+			server nodes that contain the file.
+		"""
+		# Fill code to get the file name from packet and then 
+		# get the fsize and array of metadata server
+		fname = p.getFileName()
+		print "\n\nGETFILEINODE\n\n", db.GetFileInode(fname),"\n\nENDGETFILEINODE\n\n"
+		fsize, blockList = db.GetFileInode(fname)
+		
+		if fsize:
+			p.BuildGetResponse(blockList, fsize)
+			self.request.sendall(p.getEncodedPacket())
+		else:
+			self.request.sendall("NFOUND")
+
+	def handle_blocks(self, db, p):
+		"""Add the data blocks to the file ino
