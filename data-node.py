@@ -77,6 +77,7 @@ class DataNodeTCPHandler(SocketServer.BaseRequestHandler):
 			
 			newFile.close()
 			self.request.sendall(blockid)
+			print "\nSENT BLOCKID\n"
 
 		except Exception as e:
 			print "Error datanode 77"

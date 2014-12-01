@@ -1,247 +1,162 @@
 ###############################################################################
 #
-# Filename: mds_db.py
+# Filename: meta-data.py
 # Author: Jose R. Ortiz and ... (hopefully some students contribution)
 #
 # Description:
-# 	Copy client for the DFS
+# 	MySQL support library for the DFS project. Database info for the 
+#       metadata server.
 #
-#
+# Please modify globals with appropiate info.
 
-import socket
-import sys
-import os.path
-
+from mds_db import *
 from Packet import *
+import sys
+import SocketServer
 
 def usage():
-	print """Usage:\n\tFrom DFS: python %s <server>:<port>:<dfs file path> <destination file>\n\tTo DFS: python %s <file to be sent> <server>:<port>:<dfs file path>""" % (sys.argv[0], sys.argv[0])
+	print """Usage: python %s <port, default=8000>""" % sys.argv[0] 
 	sys.exit(0)
 
-#paths include file name
-def copyToDFS(address, serverPath, localPath):
-	""" Contact the metadata server to ask to copu file fname,
-	    get a list of data nodes. Open the file in path to read,
-	    divide in blocks and send to the data nodes. 
-	"""
 
-	# Create a connection to the data server
+class MetadataTCPHandler(SocketServer.BaseRequestHandler):
 
-	# Fill code
-	media = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-	try:
-		media.connect((address[0], address[1]))
-	except:
-		print "Can't connect to metadata"
-		sys.exit(0)
+	def handle_reg(self, db, p):
+		"""Register a new client to the DFS ACK if successfully REGISTERED
+			NAK if problem, DUP if the IP and port already registered
+		"""
 
-	p = Packet()
-	try:
-		ofile = open(localPath, 'r')
-	except:
-		raise "FILE DOES NOT EXIST"
-	# Read (open) file
-	ifile = ofile.read()
-	# Fill code
-	fsize = len(ifile)
-	# Create a Put packet with the fname and the length of the data,
-	# and sends it to the metadata server 
-	p.BuildPutPacket(serverPath, fsize)
-	request = p.getEncodedPacket()
-	media.sendall(request)
-
-
-	modifier = 0
-	response = media.recv(1024)
-	print "\n response:", response, "\n"
-
-	while(response == "DUP"):
-		modifier += 1
-		serverPath = serverPath + "(" + str(modifier) + ")"
-		p.BuildPutPacket(serverPath, fsize)
-		request = p.getEncodedPacket()
-		media.sendall(request)
-		response = media.recv(1024)
-		#raise "manejar esto bien es opcional"
-		#return
-	
-	#	print "\n", response, "\n"
-	p.DecodePacket(response)
-	nodes = p.getDataNodes()
-	divsize = int(fsize / len(nodes))
-	start = 0
-	end = divsize
-	#IDs format: [(<nodeID>, <chunkID>)]
-	IDs = []
-	for i in range(len(nodes)):
-		#chunk = ifile[start:(i+1)*divsize]
-	#	print "CHUNK CHUNK CHUNK: \n\n\n", chunk, "\n\n\n\n"
-		chunk = ifile[start:end]
-		start = float(i/divsize) % 1
-		end   = float((i+1)/divsize) % 1
-		print "\n\nstart:end", start,':', end, "\n", chunk, "\n\n\n"
-		p.BuildPutPacket(serverPath, divsize)
-		nodePutRequest = p.getEncodedPacket()
-	#	print "Node request: ", nodePutRequest
 		try:
-			#print "nodes = ", nodes, "\n\n"
-			nodeSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-			nodeSocket.connect((nodes[i][0], nodes[i][1]))
-			#print "connected"
-			nodeSocket.sendall(nodePutRequest)
-			response = nodeSocket.recv(1024)
-			if response == "OK":
-		#		print "received OK"
-			#	test = open("chunk.txt", 'w')
-			#	test.write(chunk)
-				nodeSocket.sendall(chunk)
-		#		print "Sent chunk"
-				chunkID = nodeSocket.recv(1024)
-		#		print "ID received: ", chunkID
-				IDs.append([nodes[i][0], nodes[i][1], chunkID])
-				print "done"
+			if db.AddDataNode(p.getAddr(), p.getPort()) != 0:     # Fill condition:
+				self.request.sendall("ACK") 
+				print "registered"
 			else:
-				i += -1
-
-		except Exception, e:
-			print "error copy.py 79", "\tIteration ", i
-		
-		nodeSocket.close()
-	print "IDs", IDs
-	p.BuildDataBlockPacket(serverPath, IDs)
-	print "IDs", IDs
-	
-
-	#No me gusta hacerlo asi, pero parece que asi lo quiere el prof
-	#would rather call handle_dblks right here
-	try:
-		media = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-		media.connect((address[0], address[1]))
-	except:
-		print "Can't connect to metadata for dblks command"
-		media.close()
-		ofile.close()
-		sys.exit(0)
-
-	media.sendall(p.getEncodedPacket())
-
-	
-	ofile.close()
-	media.close()
-#		p.BuildDataBlockPacket(serverPath, blockList)
-#		request = p.getEncodedPacket()
-	#	media.sendall(request)
-
-	# If no error or file exists
-	# Get the list of data nodes.
-	# Divide the file in blocks
-	# Send the blocks to the data servers
-
-	# Fill code	
-
-	# Notify the metadata server where the blocks are saved.
-
-	# Fill code
-	
-def copyFromDFS(address, fname, path):
-	""" Contact the metadata server to ask for the file blocks of
-	    the file fname.  Get the data blocks from the data nodes.
-	    Saves the data in path.
-	"""
-
-   	# Contact the metadata server to ask for information of fname
-
-	# Fill code
-	media = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-	try:
-		media.connect((address[0], address[1]))
-
-	except:
-		print "Metadata server down or problem with client-side network"
-		sys.exit(0)
-
-	p = Packet()
-	p.BuildGetPacket(fname)
-	request = p.getEncodedPacket()
-	# If there is no error response Retreive the data blocks
-	media.sendall(request)
-	response = media.recv(1024)
-	media.close()
-
-	if response == "NFOUND":
-		print "File does not exist."
-		sys.exit(0)
-	p.DecodePacket(response)
-	nodes = p.getDataNodes()
-	print "NODES \n\n\n", nodes, "\n\n\nEND NODES" 
-	try:
-		wfile = open(path, 'w')
-	except:
-		print "Could not open file in write mode"
-		sys.exit(0)
-	write = ''
-	print "NODES = ", nodes
-	for node in nodes:
-
-		try:
-			print "attempt connection"
-		#	print "Node[0] - Node[1]", node[0], "\t", node[1]
-			nodeSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-			nodeSocket.connect((node[0], node[1]))
-			print "connected"
-			p.BuildGetDataBlockPacket(node[2])
-			#print 'AQUIIIIII\n\nnode[2]: ', node[2], '\n\n'
-			nodeSocket.sendall(p.getEncodedPacket())
-			chunk = nodeSocket.recv(1024)
-			write += chunk
-			nodeSocket.close()
-			print "\nCHUUUUUUUUUUUUUNK\n\n", chunk, "end chunk\n\n"
+				self.request.sendall("DUP")
 		except:
-			print "Data Node socket had a problem"
-	wfile.write(write)
-###########################################################################
+			self.request.sendall("NAK")
 
+	def handle_list(self, db, p):
+		"""Get the file list from the database and send list to client"""
+		try:
+			# Fill code here
+			files = db.GetFiles()
+			
+			p.BuildListResponse(files)
+			response = p.getEncodedPacket()
+			self.request.sendall(response)
+			
+		except:
+			self.request.sendall("NAK")	
 
+	def handle_put(self, db, p):
+		"""Insert new file into the database and send data nodes to save
+		   the file.
+		"""
+		# Fill code 
+		while 1:
+			
+			info = p.getFileInfo()
+			if db.InsertFile(info[0], info[1]):
+				# Fill code
+				nodes = db.GetDataNodes()
+				print "\nNODES:", nodes, "\n"
+				p.BuildPutResponse(nodes)
+				response = p.getEncodedPacket()
+				self.request.sendall(response)	
+				break
+			else:
+				self.request.sendall("DUP")
+				o = self.request.recv(1024)
+				p.DecodePacket(o)
+				
+	def handle_get(self, db, p):
+		"""Check if file is in database and return list of
+			server nodes that contain the file.
+		"""
+		# Fill code to get the file name from packet and then 
+		# get the fsize and array of metadata server
+		fname = p.getFileName()
+		print "\n\nGETFILEINODE\n\n", db.GetFileInode(fname),"\n\nENDGETFILEINODE\n\n"
+		fsize, blockList = db.GetFileInode(fname)
+		
+		if fsize:
+			p.BuildGetResponse(blockList, fsize)
+			self.request.sendall(p.getEncodedPacket())
+		else:
+			self.request.sendall("NFOUND")
 
-    # Save the file
+	def handle_blocks(self, db, p):
+		"""Add the data blocks to the file inode"""
+
+		# Fill code to get file name and blocks from
+		# packet
+		#p.DecodePacket()
+		print "\n\nFILENAME:",p.getFileName(), "\n\nDATA BLOCKS:", p.getDataBlocks(), "\n\n"
+		db.AddBlockToInode(p.getFileName(), p.getDataBlocks())
+		# Fill code to add blocks to file inode
+
+		
+	def handle(self):
+
+		# Establish a connection with the local database
+		db = mds_db("dfs.db")
+		db.Connect()
+
+		# Define a packet object to decode packet messages
+		p = Packet()
+
+		# Receive a msg from the list, data-node, or copy clients
+		#self.request es el socket
+		msg = self.request.recv(1024)
+		print msg, type(msg)
+		
+		# Decode the packet received
+		p.DecodePacket(msg)
 	
-	# Fill code
 
+		# Extract the command part of the received packet
+		cmd = p.getCommand()
 
-	media.close()
+		# Invoke the proper action 
+		if   cmd == "reg":
+			# Registration client
+			self.handle_reg(db, p)
 
+		elif cmd == "list":
+			# Client asking for a list of files
+			# Fill code
+			self.handle_list(db, p)
 
+		elif cmd == "put":
+			# Client asking for servers to put data
+			# Fill code
+			self.handle_put(db, p)
+
+		elif cmd == "get":
+			# Client asking for servers to get data
+			# Fill code
+			self.handle_get(db, p)
+
+		elif cmd == "dblks":
+			# Client sending data blocks for file
+			# Fill code
+			print "Doing dblks"
+			self.handle_blocks(db, p)
+
+		db.Close()
 
 if __name__ == "__main__":
-#	client("localhost", 8000)
-	if len(sys.argv) < 3:
-		usage()
+    HOST, PORT = "", 8000
 
-	file_from = sys.argv[1].split(":")
-	file_to = sys.argv[2].split(":")
+    if len(sys.argv) > 1:
+    	try:
+    		PORT = int(sys.argv[1])
+    	except:
+    		usage()
 
-	if len(file_from) > 1:
-		ip = file_from[0]
-		port = int(file_from[1])
-		from_path = file_from[2]
-		to_path = sys.argv[2]
+    server = SocketServer.TCPServer((HOST, PORT), MetadataTCPHandler)
 
-		if os.path.isdir(to_path):
-			print "Error: path %s is a directory.  Please name the file." % to_path
-			usage()
-
-		copyFromDFS((ip, port), from_path, to_path)
-
-	elif len(file_to) > 2:
-		ip = file_to[0]
-		port = int(file_to[1])
-		to_path = file_to[2]
-		from_path = sys.argv[1]
-
-		if os.path.isdir(from_path):
-			print "Error: path %s is a directory.  Please name the file." % from_path
-			usage()
-
-		copyToDFS((ip, port), to_path, from_path)
-
-
+    
+    # Activate the server; this will keep running until you
+    # interrupt the program with Ctrl-C
+    server.serve_forever()

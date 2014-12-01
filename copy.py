@@ -76,10 +76,12 @@ def copyToDFS(address, serverPath, localPath):
 	for i in range(len(nodes)):
 		#chunk = ifile[start:(i+1)*divsize]
 	#	print "CHUNK CHUNK CHUNK: \n\n\n", chunk, "\n\n\n\n"
+		
 		chunk = ifile[start:end]
-		start = i*divsize
-		end   = (i+1)*divsize
 		print "\n\nstart:end", start,':', end, "\n", chunk, "\n\n\n"
+		start = end
+		end   = end*(i+1)
+	#	print "\n\nstart:end", start,':', end, "\n", chunk, "\n\n\n"
 		p.BuildPutPacket(serverPath, divsize)
 		nodePutRequest = p.getEncodedPacket()
 	#	print "Node request: ", nodePutRequest
@@ -101,6 +103,7 @@ def copyToDFS(address, serverPath, localPath):
 				IDs.append([nodes[i][0], nodes[i][1], chunkID])
 				print "done"
 			else:
+				print "Estoy en el else"
 				i += -1
 
 		except Exception, e:
@@ -109,7 +112,7 @@ def copyToDFS(address, serverPath, localPath):
 		nodeSocket.close()
 	print "IDs", IDs
 	p.BuildDataBlockPacket(serverPath, IDs)
-	print "IDs", IDs
+	
 	
 
 	#No me gusta hacerlo asi, pero parece que asi lo quiere el prof
@@ -180,22 +183,22 @@ def copyFromDFS(address, fname, path):
 		print "Could not open file in write mode"
 		sys.exit(0)
 	write = ''
-	print "NODES = ", nodes
+#	print "NODES = ", nodes
 	for node in nodes:
 
 		try:
-			print "attempt connection"
+	#		print "attempt connection"
 		#	print "Node[0] - Node[1]", node[0], "\t", node[1]
 			nodeSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 			nodeSocket.connect((node[0], node[1]))
-			print "connected"
+	#		print "connected"
 			p.BuildGetDataBlockPacket(node[2])
 			#print 'AQUIIIIII\n\nnode[2]: ', node[2], '\n\n'
 			nodeSocket.sendall(p.getEncodedPacket())
 			chunk = nodeSocket.recv(1024)
 			write += chunk
 			nodeSocket.close()
-			print "\nCHUUUUUUUUUUUUUNK\n\n", chunk, "end chunk\n\n"
+	#		print "\nCHUUUUUUUUUUUUUNK\n\n", chunk, "end chunk\n\n"
 		except:
 			print "Data Node socket had a problem"
 	wfile.write(write)
