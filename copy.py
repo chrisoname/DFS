@@ -141,13 +141,45 @@ def copyFromDFS(address, fname, path):
 		media.connect((address[0], address[1]))
 
 	except:
-		raise
+		print "Metadata server down or problem with client-side network"
+		sys.exit(0)
 
+	p = Packet()
+	p.BuildGetPacket(fname)
+	request = p.getEncodedPacket()
 	# If there is no error response Retreive the data blocks
+	media.sendall(request)
+	response = media.recv(1024)
+	media.close()
 
-	# Fill code
+	if response == "NFOUND":
+		print "File does not exist."
+		sys.exit(0)
+	p.DecodePacket(response)
+	nodes = p.getDataNodes()
+	print "NODES \n\n\n", nodes, "\n\n\nEND NODES" 
+	try:
+		wfile = open(path, 'w')
+	except:
+		print "Could not open file in write mode"
+		sys.exit(0)
+	for node in nodes:
+		try:
+			nodeSocket = socket.socket(socket.SOCK_STREAM, socket.AF_INET)
+			nodeSocket.connect((node[0], node[1]))
+			p.BuildGetDataBlockPacket(node[2])
+			nodeSocket.sendall(p.getEncodedPacket())
+			chunk = nodeSocket.recv(1024)
+			wfile.write(chunk)
+			nodeSocket.close()
+		except:
+			"Data Node socket had a problem or problem writing to file"
 
-    	# Save the file
+###########################################################################
+
+
+
+    # Save the file
 	
 	# Fill code
 

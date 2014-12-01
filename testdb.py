@@ -60,7 +60,7 @@ print
 
 print "Testing retreiving Inode info"
 fsize, chunks_info = db.GetFileInode("/hola/cheo.txt")
-
+print "chunks_info:", chunks_info
 print "File Size is:", fsize
 print "and can be constructed from: "
 for  address, port, chunk in chunks_info:

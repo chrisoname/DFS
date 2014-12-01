@@ -67,7 +67,7 @@ class DataNodeTCPHandler(SocketServer.BaseRequestHandler):
 
 		try:
 			print "datanode 69, filename: ", fname
-			newFile = open(DATA_PATH + fname, 'w')
+			newFile = open(DATA_PATH + blockid, 'w')
 			print "datanode71"
 		# Open the file for the new data block.
 			print "waiting for chunk"
@@ -93,7 +93,8 @@ class DataNodeTCPHandler(SocketServer.BaseRequestHandler):
 		
 		# Get the block id from the packet
 		blockid = p.getBlockID()
-		
+		rfile = open(DATA_PATH + blockid, 'r')
+		self.request.sendall(rfile.read())
 
 		# Read the file with the block id data
 		# Send it back to the copy client.
