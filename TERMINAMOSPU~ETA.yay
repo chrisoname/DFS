@@ -36,7 +36,20 @@ class MetadataTCPHandler(SocketServer.BaseRequestHandler):
 			self.request.sendall("NAK")
 
 	def handle_list(self, db, p):
-		"""Get the file list from the databasa nodes to save
+		"""Get the file list from the database and send list to client"""
+		try:
+			# Fill code here
+			files = db.GetFiles()
+			
+			p.BuildListResponse(files)
+			response = p.getEncodedPacket()
+			self.request.sendall(response)
+			
+		except:
+			self.request.sendall("NAK")	
+
+	def handle_put(self, db, p):
+		"""Insert new file into the database and send data nodes to save
 		   the file.
 		"""
 		# Fill code 
@@ -73,7 +86,19 @@ class MetadataTCPHandler(SocketServer.BaseRequestHandler):
 			self.request.sendall("NFOUND")
 
 	def handle_blocks(self, db, p):
-		"""Add the data blocks to the file inoonnection with the local database
+		"""Add the data blocks to the file inode"""
+
+		# Fill code to get file name and blocks from
+		# packet
+		#p.DecodePacket()
+		print "\n\nFILENAME:",p.getFileName(), "\n\nDATA BLOCKS:", p.getDataBlocks(), "\n\n"
+		db.AddBlockToInode(p.getFileName(), p.getDataBlocks())
+		# Fill code to add blocks to file inode
+
+		
+	def handle(self):
+
+		# Establish a connection with the local database
 		db = mds_db("dfs.db")
 		db.Connect()
 
@@ -121,4 +146,17 @@ class MetadataTCPHandler(SocketServer.BaseRequestHandler):
 		db.Close()
 
 if __name__ == "__main__":
-    HOST, 
+    HOST, PORT = "", 8000
+
+    if len(sys.argv) > 1:
+    	try:
+    		PORT = int(sys.argv[1])
+    	except:
+    		usage()
+
+    server = SocketServer.TCPServer((HOST, PORT), MetadataTCPHandler)
+
+    
+    # Activate the server; this will keep running until you
+    # interrupt the program with Ctrl-C
+    server.serve_forever()
