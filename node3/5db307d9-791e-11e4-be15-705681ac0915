@@ -1,0 +1,28 @@
+f BuildPutPacket(self, fname, fsize):
+		"""Builds a put packet to put serverpath and file size."""
+		self.BuildCommand("put")
+		self.packet["fname"] = fname
+		self.packet["fsize"] = fsize
+
+	def BuildDataBlockPacket(self, fname, block_list):
+		"""Builds a data block packet. Contains the file name and the list of blocks for the file"""
+		self.BuildCommand("dblks")
+		self.packet["blocks"] = block_list
+		self.packet["fname"] = fname
+
+	def BuildGetDataBlockPacket(self, blockid):
+		"""Builds a get data block packet. Usefull when requesting a data block to a data node."""
+
+		self.BuildCommand("get")
+		self.packet["blockid"] = blockid
+
+	def getBlockID(self):
+		"""Returns a the block_id from a packet."""
+		return self.packet["blockid"]
+
+	def getFileInfo(self):
+		"""Returns file info from packet."""
+		if self.packet.has_key("fname") and self.packet.has_key("fsize"):
+			return self.packet["fname"], self.packet["fsize"] 
+
+	def getFileName(sel

@@ -1,0 +1,37 @@
+tFileName()
+		print "\n\nGETFILEINODE\n\n", db.GetFileInode(fname),"\n\nENDGETFILEINODE\n\n"
+		fsize, blockList = db.GetFileInode(fname)
+		
+		if fsize:
+			p.BuildGetResponse(blockList, fsize)
+			self.request.sendall(p.getEncodedPacket())
+		else:
+			self.request.sendall("NFOUND")
+
+	def handle_blocks(self, db, p):
+		"""Add the data blocks to the file inode"""
+
+		# Fill code to get file name and blocks from
+		# packet
+		#p.DecodePacket()
+		print "\n\nFILENAME:",p.getFileName(), "\n\nDATA BLOCKS:", p.getDataBlocks(), "\n\n"
+		db.AddBlockToInode(p.getFileName(), p.getDataBlocks())
+		# Fill code to add blocks to file inode
+
+		
+	def handle(self):
+
+		# Establish a connection with the local database
+		db = mds_db("dfs.db")
+		db.Connect()
+
+		# Define a packet object to decode packet messages
+		p = Packet()
+
+		# Receive a msg from the list, data-node, or copy clients
+		#self.request es el socket
+		msg = self.request.recv(1024)
+		print msg, type(msg)
+		
+		# Decode the packet received
+		p.DecodePacket
